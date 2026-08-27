@@ -1,0 +1,43 @@
+#!/bin/bash
+set -e
+LOG="/tmp/myslice_postinstall.log"
+APP_NAME="Myslice"
+APP_PATH="/Applications/$APP_NAME.app"
+INSTALL_MANIFEST_DIR="/usr/local/myslice_manifests"
+MANIFEST_NAME="manifest.xml"
+
+echo "$(date): Starting postinstall..." >> "$LOG"
+
+CURRENT_USER=${SUDO_USER:-$(stat -f%Su /dev/console)}
+USER_HOME=$(dscl . -read /Users/$CURRENT_USER NFSHomeDirectory | cut -d " " -f2)
+
+APP_SUPPORT="$USER_HOME/Library/Application Support/myslice"
+LOG_DIR="$USER_HOME/Library/Logs/myslice"
+mkdir -p "$APP_SUPPORT" "$LOG_DIR"
+chown -R "$CURRENT_USER" "$APP_SUPPORT" "$LOG_DIR"
+
+# Copy manifest
+cp "$INSTALL_MANIFEST_DIR/$MANIFEST_NAME" "$APP_SUPPORT/"
+chown "$CURRENT_USER" "$APP_SUPPORT/$MANIFEST_NAME"
+chmod 644 "$APP_SUPPORT/$MANIFEST_NAME"
+
+# Deploy to Office WEF
+for app in Word Excel Powerpoint; do
+  WEF="$USER_HOME/Library/Containers/com.microsoft.$app/Data/Documents/wef"
+  mkdir -p "$WEF"
+  cp "$APP_SUPPORT/$MANIFEST_NAME" "$WEF/"
+  chown "$CURRENT_USER" "$WEF/$MANIFEST_NAME"
+done
+
+# Register app with Launch Services
+LSREG="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
+"$LSREG" -f "$APP_PATH" >> "$LOG" 2>&1 || true
+
+# Refresh Launchpad
+killall Dock || echo "⚠️ Could not restart Dock" >> "$LOG"
+
+# Cleanup
+rm -rf "$INSTALL_MANIFEST_DIR" || echo "⚠️ Could not clean temp manifest dir" >> "$LOG"
+
+echo "$(date): Postinstall complete." >> "$LOG"
+exit 0

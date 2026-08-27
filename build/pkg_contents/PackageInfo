@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<pkg-info overwrite-permissions="true" relocatable="false" identifier="org.crestmini2.myslice.installer" postinstall-action="none" version="1.0" format-version="2" generator-version="InstallCmds-860 (24E263)" install-location="/" auth="root">
+    <payload numberOfFiles="35" installKBytes="461"/>
+    <bundle id="org.crestmini2.Myslice" CFBundleShortVersionString="1.0" path="./Applications/Myslice.app"/>
+    <bundle-version>
+        <bundle id="org.crestmini2.Myslice"/>
+    </bundle-version>
+    <upgrade-bundle>
+        <bundle id="org.crestmini2.Myslice"/>
+    </upgrade-bundle>
+    <update-bundle/>
+    <atomic-update-bundle/>
+    <strict-identifier>
+        <bundle id="org.crestmini2.Myslice"/>
+    </strict-identifier>
+    <relocate>
+        <bundle id="org.crestmini2.Myslice"/>
+    </relocate>
+    <scripts>
+        <postinstall file="./postinstall" timeout="600"/>
+    </scripts>
+</pkg-info>
