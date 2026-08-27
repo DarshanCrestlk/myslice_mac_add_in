@@ -150,7 +150,8 @@ Script steps:
 5. Clean a base name from the download URL.
 6. `mktemp -d -t myslice-` then download with `curl` to:
 
-   `{cleaned}.{ext}({file_id}+{yyyyMMddHHmmss})`
+   `{cleaned}.{ext}({file_id}+{yyyyMMddHHmmss})`  
+   or with origin: `{cleaned}.{ext}({file_id}+{yyyyMMddHHmmss}+{origin})`
 
 7. Open with `open -a` Word / Excel / PowerPoint (or TextEdit/VS Code for `txt`).
 8. Exit immediately (`open … &`). Temp dir is **not** deleted on success (manual / cron cleanup).
@@ -169,15 +170,9 @@ Ribbon / API host follow origin in the **Windows** add-in + launcher. See gap be
 
 ## Gap vs Windows `myslice.ps1`
 
-Current `myslice.sh` does **not** parse `origin`.
+`myslice.sh` **does** parse `origin=` and stamps it into the temp file name when present (`name.ext(uuid+time+origin)`). Rebuild Platypus + `.pkg` after any handler change.
 
-| | Windows `myslice.ps1` | Mac `myslice.sh` |
-| --- | --- | --- |
-| `file_id`, `ext`, `p` | Yes | Yes |
-| `origin` in file name | `name.ext(uuid+time+myslice-people)` | `name.ext(uuid+time)` only |
-| Seal / people / HRMS ribbon + API | Add-in can read origin | Origin missing → add-in falls back to HRMS |
-
-To match Windows, `myslice.sh` must parse `origin=` and append it to `TEMP_FILE_BASENAME` (and rebuild Platypus `.app` + `.pkg`).
+Step-by-step cookbook: `MAC-BUILD-AND-INSTALL-STEPS.md`.
 
 ---
 
@@ -185,7 +180,7 @@ To match Windows, `myslice.sh` must parse `origin=` and append it to `TEMP_FILE_
 
 Valid prefixes in `myslice.sh`: `mysliceLTS`, `myslicelts`, `myslicetest`.
 
-`origin=myslice-people` is a valid slug for the add-in, but it only takes effect on Mac **after** the handler stamps it into the temp file name.
+`origin=myslice-people` is a valid slug for the add-in. Current `myslice.sh` stamps it into the temp file name when the URL includes `origin=`.
 
 `ext` must be a short type (`docx` / `xlsx` / `pptx`), not a full MIME string.
 
