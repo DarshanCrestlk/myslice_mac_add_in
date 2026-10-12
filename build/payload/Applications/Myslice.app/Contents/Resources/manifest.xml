@@ -4,7 +4,7 @@
   xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
   xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="TaskPaneApp">
   <Id>7ac86ae0-404b-43c2-b9d9-e6c178dc4b94</Id>
-  <Version>1.0.0.0</Version>
+  <Version>1.0.0.1</Version>
   <ProviderName>myslice</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="myslice" />
@@ -15,29 +15,36 @@
     DefaultValue="https://dev-slice-hrms.s3.us-east-2.amazonaws.com/SLICE+HRMS/images/myslice+Add+ins/dist/assets/icon-64.png" />
   <SupportUrl DefaultValue="https://www.contoso.com/help" />
   <AppDomains>
-    <AppDomain> https://dev-api.slicehr.com</AppDomain>
+    <!-- <AppDomain> https://dev-api.slicehr.com</AppDomain> -->
+    <AppDomain>https://dev-hrms-api.slicehr.com</AppDomain>
+    <AppDomain>https://dev-seal-api.slicehr.com</AppDomain>
+    <AppDomain>https://dev-ats-api.slicehr.com</AppDomain>
   </AppDomains>
   <Hosts>
-    <Host Name="Workbook" />
+    <Host Name="Document" />
   </Hosts>
+  <Requirements>
+    <Sets DefaultMinVersion="1.1">
+      <Set Name="SharedRuntime" MinVersion="1.1" />
+    </Sets>
+  </Requirements>
   <DefaultSettings>
     <SourceLocation
       DefaultValue="https://dev-slice-hrms.s3.us-east-2.amazonaws.com/SLICE+HRMS/images/myslice+Add+ins/dist/taskpane.html" />
   </DefaultSettings>
   <Permissions>ReadWriteDocument</Permissions>
 
-  <Requirements>
-    <Sets DefaultMinVersion="1.1">
-      <Set Name="SharedRuntime" MinVersion="1.1" />
-    </Sets>
-  </Requirements>
-
   <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
     xsi:type="VersionOverridesV1_0">
+    <Requirements>
+      <bt:Sets DefaultMinVersion="1.1">
+        <bt:Set Name="RibbonApi" MinVersion="1.1" />
+      </bt:Sets>
+    </Requirements>
     <Hosts>
       <Host xsi:type="Document">
         <Runtimes>
-          <Runtime resid="SharedRuntime.Url" lifetime="long" id="SharedRuntime" />
+          <Runtime resid="SharedRuntime.Url" lifetime="long"   />
         </Runtimes>
         <DesktopFormFactor>
           <GetStarted>
@@ -45,9 +52,9 @@
             <Description resid="GetStarted.Description" />
             <LearnMoreUrl resid="GetStarted.LearnMoreUrl" />
           </GetStarted>
-          <FunctionFile resid="Command.Url" />
+          <FunctionFile resid="SharedRuntime.Url" />
           <ExtensionPoint xsi:type="PrimaryCommandSurface">
-            <CustomTab id="TabHome">
+            <CustomTab id="TabMyslice">
               <!-- <Group id="CompareGroup">
                 <Label resid="CompareGroup.Label" />
                 <Icon>
@@ -93,6 +100,7 @@
                   <Action xsi:type="ExecuteFunction">
                     <FunctionName>saveAsNewVersionButton</FunctionName>
                   </Action>
+                  <Enabled>true</Enabled>
                 </Control>
               </Group>
               <Group id="SaveAsGroup">
@@ -117,6 +125,7 @@
                     <TaskpaneId>ButtonId1</TaskpaneId>
                     <SourceLocation resid="SaveAs.Url" />
                   </Action>
+                  <Enabled>true</Enabled>
                 </Control>
               </Group>
               <Group id="CloseGroup">
@@ -140,6 +149,7 @@
                   <Action xsi:type="ExecuteFunction">
                     <FunctionName>unlockAndCloseButton</FunctionName>
                   </Action>
+                  <Enabled>true</Enabled>
                 </Control>
               </Group>
               <Label resid="SliceHRMSGroup.Label" />
@@ -149,7 +159,7 @@
       </Host>
       <Host xsi:type="Workbook">
         <Runtimes>
-          <Runtime resid="SharedRuntime.Url" lifetime="long" id="SharedRuntime" />
+          <Runtime resid="SharedRuntime.Url" lifetime="long"   />
         </Runtimes>
         <DesktopFormFactor>
           <GetStarted>
@@ -157,9 +167,9 @@
             <Description resid="GetStarted.Description" />
             <LearnMoreUrl resid="GetStarted.LearnMoreUrl" />
           </GetStarted>
-          <FunctionFile resid="Command.Url" />
+          <FunctionFile resid="SharedRuntime.Url" />
           <ExtensionPoint xsi:type="PrimaryCommandSurface">
-            <CustomTab id="TabHome">
+            <CustomTab id="TabMyslice">
               <!-- Save As New Version -->
               <Group id="SaveAsNewVersionGroup">
                 <Label resid="SaveAsNewVersionGroup.Label" />
@@ -182,6 +192,7 @@
                   <Action xsi:type="ExecuteFunction">
                     <FunctionName>saveAsNewVersionButton</FunctionName>
                   </Action>
+                  <Enabled>true</Enabled>
                 </Control>
               </Group>
 
@@ -208,6 +219,7 @@
                     <TaskpaneId>ButtonId1</TaskpaneId>
                     <SourceLocation resid="SaveAs.Url" />
                   </Action>
+                  <Enabled>true</Enabled>
                 </Control>
               </Group>
 
@@ -233,6 +245,7 @@
                   <Action xsi:type="ExecuteFunction">
                     <FunctionName>unlockAndCloseButton</FunctionName>
                   </Action>
+                  <Enabled>true</Enabled>
                 </Control>
               </Group>
 
@@ -280,22 +293,12 @@
       <bt:Urls>
         <bt:Url id="GetStarted.LearnMoreUrl"
           DefaultValue="https://go.microsoft.com/fwlink/?LinkId=276812" />
-        <bt:Url id="Command.Url"
-          DefaultValue="https://dev-slice-hrms.s3.us-east-2.amazonaws.com/SLICE+HRMS/images/myslice+Add+ins/dist/taskpane.html" />
+       
         <bt:Url id="SharedRuntime.Url"
           DefaultValue="https://dev-slice-hrms.s3.us-east-2.amazonaws.com/SLICE+HRMS/images/myslice+Add+ins/dist/taskpane.html" />
         <bt:Url id="SaveAs.Url"
           DefaultValue="https://dev-slice-hrms.s3.us-east-2.amazonaws.com/SLICE+HRMS/images/myslice+Add+ins/dist/taskpane.html?taskpaneId=SaveAsTaskpane" />
-        <bt:Url id="Taskpane.Url"
-          DefaultValue="https://dev-slice-hrms.s3.us-east-2.amazonaws.com/SLICE+HRMS/images/myslice+Add+ins/dist/taskpane.html?taskpaneId=LoginTaskpane" />
-        <!-- <bt:Url id="Compare.Url"
-        DefaultValue="https://dev-slice-hrms.s3.us-east-2.amazonaws.com/SLICE+HRMS/images/myslice+Add+ins/dist/taskpane.html?taskpaneId=CompareVersions"
-        /> -->
-        <bt:Url id="Close.Url"
-          DefaultValue="https://dev-slice-hrms.s3.us-east-2.amazonaws.com/SLICE+HRMS/images/myslice+Add+ins/dist/taskpane.html" />
-
-        <!-- <bt:Url id="OpenTaskpane.Url"
-        DefaultValue="https://localhost:3005/taskpane.html?taskpaneId=OpenTaskpane"/> -->
+      
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="GetStarted.Title" DefaultValue="Welcome" />
