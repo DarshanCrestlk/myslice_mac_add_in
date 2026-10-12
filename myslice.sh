@@ -42,16 +42,79 @@ fi
 url=$(echo "$url_temp" | sed 's|^https//|https://|')
 # --- COMMENTED OUT: log_desktop "Extracted and fixed main file URL: $url" ---
 
-# Extract parameters
-file_id=$(echo "$url" | sed -n 's/.*file_id=\([^?]*\).*/\1/p')
-ext=$(echo "$url" | sed -n 's/.*ext=\([^?]*\).*/\1/p')
-permissions=$(echo "$url" | sed -n 's/.*p=\([^?]*\).*/\1/p')
-origin=$(echo "$url" | sed -n 's/.*origin=\([^?]*\).*/\1/p')
+url_decode() {
+    local encoded="${1//+/ }"
+    printf '%b' "${encoded//%/\\x}"
+}
 
-# Extract and clean original filename
-original_filename=$(basename "$url")
-cleaned_filename=$(echo "$original_filename" | sed 's/^[0-9]*\.*//' | sed 's/\..*$//')
-cleaned_filename=$(echo "$cleaned_filename" | sed 's/%20/ /g' | sed 's/%2B/+/g' | xargs)
+get_query_value() {
+    local raw="$1"
+    local key="$2"
+    local value
+    value=$(echo "$raw" | sed -n "s/.*[?&]${key}=\([^?&]*\).*/\1/p")
+    if [ -z "$value" ]; then
+        echo ""
+        return
+    fi
+    url_decode "$value"
+}
+
+get_download_url() {
+    local download="$1"
+    local key
+    for key in ext file_id origin mode p; do
+        download=$(echo "$download" | sed -E "s/[?&]${key}=[^?&]*//g")
+    done
+    echo "$download" | sed -E 's/[?&]+$//'
+}
+
+get_safe_slug() {
+    local slug
+    slug=$(echo "$1" | tr '[:upper:]' '[:lower:]' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    if ! echo "$slug" | grep -Eq '^[a-z0-9]+(-[a-z0-9]+)*$'; then
+        echo ""
+        return
+    fi
+    echo "$slug"
+}
+
+normalize_origin() {
+    local slug
+    slug=$(get_safe_slug "$1")
+    if [ -z "$slug" ]; then
+        echo "myslice-hrms"
+        return
+    fi
+    case "$slug" in
+        hrms|people) echo "myslice-hrms" ;;
+        seal) echo "myslice-seal" ;;
+        ats) echo "myslice-ats" ;;
+        *) echo "$slug" ;;
+    esac
+}
+
+get_safe_base_name() {
+    local download_url="$1"
+    local path_part="${download_url%%\?*}"
+    local leaf
+    leaf=$(basename "$path_part")
+    leaf="${leaf%.*}"
+    leaf=$(url_decode "$leaf")
+    leaf=$(echo "$leaf" | sed 's/^[0-9]*\.*//' | sed 's/[[:space:]]*$//' | sed 's/^[[:space:]]*//')
+    leaf=$(echo "$leaf" | tr -d '/:\\*?"<>|' | sed 's/[[:space:]]/_/g')
+    if [ -z "$leaf" ]; then
+        leaf="document"
+    fi
+    echo "${leaf:0:50}"
+}
+
+# Extract parameters (same keys as Windows myslice.ps1)
+file_id=$(get_query_value "$url" "file_id")
+ext=$(get_query_value "$url" "ext")
+permissions=$(get_query_value "$url" "p")
+origin=$(normalize_origin "$(get_query_value "$url" "origin")")
+download_url=$(get_download_url "$url")
+cleaned_filename=$(get_safe_base_name "$download_url")
 
 # --- COMMENTED OUT: Log extracted parameters ---
 # log_desktop "EXTRACTED PARAMETERS (from parsed URL):"
@@ -83,17 +146,23 @@ fi
 # Create the new filename format with file ID, timestamp, and origin (add-in reads origin as the 3rd + part).
 META="${file_id}+$(date +'%Y%m%d%H%M%S')"
 [ -n "$origin" ] && META="${META}+${origin}"
-TEMP_FILE_BASENAME="${cleaned_filename}.${ext}(${META})"
+if [ -n "$permissions" ]; then
+    TEMP_FILE_BASENAME="${cleaned_filename}.${ext}(${META}),${permissions}"
+else
+    TEMP_FILE_BASENAME="${cleaned_filename}.${ext}(${META})"
+fi
 
 # Full path to the temporary file.
 LOCAL_FILE_PATH="$TEMP_DIR/$TEMP_FILE_BASENAME"
 
 # Downloading to the temporary file path
+echo "ext=$ext origin=$origin"
+echo "downloadUrl=$download_url"
 echo "Downloading to: $LOCAL_FILE_PATH"
 # --- COMMENTED OUT: log_desktop "Download path: $LOCAL_FILE_PATH" ---
 
-# Download file
-curl -f -s --max-time 30 --retry 3 -o "$LOCAL_FILE_PATH" "$url"
+# Download the S3/file URL only — protocol params (ext, file_id, origin, mode, p) are stripped first.
+curl -f -s --max-time 30 --retry 3 -o "$LOCAL_FILE_PATH" "$download_url"
 if [ $? -eq 0 ]; then
     echo "✓ File downloaded successfully"
     # --- COMMENTED OUT: log_desktop "Download successful" ---
